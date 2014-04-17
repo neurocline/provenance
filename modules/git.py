@@ -1,7 +1,12 @@
 # Gutter-level git for simple tools
-# replace with real Git library like GitPython
+# replace with real Git library like GitPython (perhaps)
+# The actual answer is that a high-performance version will just reach directly inside
+# the git repository.
+# This has almost no error handling.
 
 import subprocess
+
+verbose = False
 
 # -------------------------------------------------------------------------------------------------
 
@@ -10,10 +15,29 @@ import subprocess
 #   rev is optional
 #   path is optional
 def ls_tree(rev=None, path=None, recursive=False, wd=None):
-    cmd = ['git', 'ls-tree']
-    if recursive: cmd.append('-r')
-    if rev: cmd.append(rev)
-    if path: cmd.append(path)
+    cmd = ['git', 'ls-tree', '-l']
+    if recursive:
+        cmd.append('-r')
+        cmd.append('-t')
+    if rev:
+        cmd.append(rev)
+    if path:
+        cmd.append(path)
+    return execute(cmd, wd)
+
+# -------------------------------------------------------------------------------------------------
+
+# Support subset of git-rev-list
+# We pick topo-order because that seems to be the "best" output
+def rev_list(wd=None):
+    cmd = ['git', 'rev-list', '--all', '--topo-order', '--reverse']
+    return execute(cmd, wd)
+
+# -------------------------------------------------------------------------------------------------
+
+# Support subset of git-cat-file
+def cat_file(object, wd=None):
+    cmd = ['git', 'cat-file', '-p', object]
     return execute(cmd, wd)
 
 # -------------------------------------------------------------------------------------------------
@@ -21,16 +45,29 @@ def ls_tree(rev=None, path=None, recursive=False, wd=None):
 # Return list of non-binary files in rev
 def nonbinary(rev=None, wd=None):
     cmd = ['git', 'grep', '-I', '--name-only', '-e', '']
-    if rev: cmd.append(rev)
+    if rev:
+        cmd.append(rev)
     return execute(cmd, wd)
+
+# -------------------------------------------------------------------------------------------------
+
+# Do git blame
+def blame(rev=None, file=None, wd=None):
+  cmd = ['git', 'blame']
+  if rev:
+    cmd.append(rev)
+  cmd.append(path)
+  return execute(cmd, wd)
 
 # -------------------------------------------------------------------------------------------------
 
 # Run a git command and return its output
 def execute(cmd, wd):
-    if wd is None: wd = '.'
+    if wd is None:
+        wd = '.'
     log = []
-    print cmd
+    if verbose:
+        print cmd
     cmd = subprocess.Popen(cmd, stdout=subprocess.PIPE, cwd=wd)
     for line in cmd.stdout:
         log.append(line.rstrip('\n'))
