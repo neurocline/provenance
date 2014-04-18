@@ -6,7 +6,7 @@
 
 import subprocess
 
-verbose = False
+verbose = True
 
 # -------------------------------------------------------------------------------------------------
 
@@ -53,11 +53,36 @@ def nonbinary(rev=None, wd=None):
 
 # Do git blame
 def blame(rev=None, file=None, wd=None):
-  cmd = ['git', 'blame']
-  if rev:
-    cmd.append(rev)
-  cmd.append(path)
-  return execute(cmd, wd)
+    cmd = ['git', 'blame']
+    if rev:
+        cmd.append(rev)
+    cmd.append(path)
+    return execute(cmd, wd)
+
+# -------------------------------------------------------------------------------------------------
+
+# Do git log. Allowed keywords are:
+#     author, format, numstat, patch, rev, shortstat, no_merges, wd
+def log(wd=None, **kwargs):
+    cmd = ['git', 'log', '--reverse', '--use-mailmap']
+    if 'author' in kwargs:
+        cmd.append('--author')
+        cmd.append(kwargs['author'])
+    if 'format' in kwargs:
+        cmd.append('--pretty=format:%s' % kwargs['format'])
+    if 'no_merges' in kwargs:
+        cmd.append('--no-merges')
+    if 'numstat' in kwargs:
+        cmd.append('--numstat')
+    if 'patch' in kwargs:
+        cmd.append('--patch')
+    if 'shortstat' in kwargs:
+        cmd.append('--shortstat')
+
+    if 'rev' in kwargs:
+        cmd.append(rev)
+
+    return execute(cmd, wd)
 
 # -------------------------------------------------------------------------------------------------
 
