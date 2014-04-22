@@ -78,6 +78,8 @@ def log(wd=None, **kwargs):
         cmd.append('--patch')
     if 'shortstat' in kwargs:
         cmd.append('--shortstat')
+    if 'name_status' in kwargs:
+        cmd.append('--name-status')
 
     if 'rev' in kwargs:
         cmd.append(rev)
